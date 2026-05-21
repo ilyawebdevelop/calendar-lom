@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar Widget</title>
+<link rel="stylesheet" href="css/style.min.css">
+<style>
+  :root {
+    --light-light-gray: #E2EBF0;
+  }
+
+  .sect-wrapper {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .sect-wrapper__info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 280px;
+    min-width: 280px;
+    height: 100%;
+    background-color: #242B31;
+    color: #fff;
+    font-size: 16px;
+  }
+
+  .calendarW {
+    width: 100%;
+    height: 100vh;
+    padding: 0 32px;
+    padding-top: 104px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .calendarW-topbar {
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .calendarW-wrapper {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    border: 1px solid var(--light-light-gray);
+    border-radius: 12px;
+    box-shadow: 0 6px 16px 0 rgba(237,243,246,0.8);
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ============ RIGHT SIDEBAR (categories) ============ */
+  .calendarW-right {
+    width: 300px;
+    min-width: 300px;
+    height: 100%;
+    border-right: 1px solid var(--light-light-gray);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .calendarW-right__search {
+    height: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 15px 16px 11px 16px;
+    border-bottom: 1px solid var(--light-light-gray);
+    flex-shrink: 0;
+  }
+  .calendarW-right__title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 122%;
+    color: #242B31;
+  }
+  .calendarW-right input {
+    border-radius: 8px;
+    padding: 10px 12px 10px 16px;
+    width: 100%;
+    height: 36px;
+    background: #F2F6F9;
+    border: none;
+    outline: none;
+  }
+
+  /* Cats scroll */
+  .calendarW-cat-scroll {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .calendarW-cat {
+    padding: 8px 0;
+  }
+  .calendarW-cat__main-name {
+    width: 100%;
+    height: 40px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in;
+  }
+  .calendarW-cat__main-name:hover { background-color: #F2F6F9; }
+  .calendarW-cat__main-name span {
+    display: block;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 122%;
+    color: #101A23;
+  }
+
+  .calendarW-cat__level2-name {
+    width: 100%;
+    height: 40px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in;
+  }
+  .calendarW-cat__level2-name:hover { background-color: #F2F6F9; }
+  .calendarW-cat__level2-name .dot {
+    margin: 0 8px 0 12px;
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 100%;
+    flex-shrink: 0;
+  }
+  .calendarW-cat__level2-name span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    display: block;
+  }
+  .calendarW-cat__level2-name svg {
+    margin-left: 4px;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  /* Arrow rotation when open */
+  .calendarW-cat__main-name svg,
+  .calendarW-cat__level2-name svg {
+    transition: transform 0.25s ease;
+  }
+  .calendarW-cat__main-name.open svg,
+  .calendarW-cat__level2-name.open svg {
+    transform: rotate(90deg);
+  }
+  .calendarW-cat__level2-item {
+    width: 100%;
+    height: 40px;
+    padding: 0 16px 0 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 123%;
+    color: #242B31;
+    transition: color 0.3s ease-in;
+  }
+  .calendarW-cat__level2-item.disabled { color: #93A5B2; }
+
+  /* ============ LEFT (calendar area) ============ */
+  .calendarW-left {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Fixed header: nav + months + dates */
+  .calendarW-header {
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .calendarW-area {
+    width: 100%;
+    height: 96px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calendarW-nav {
+    position: absolute;
+    top: 14px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+    pointer-events: none;
+    padding: 0 4px;
+  }
+  .calendarW-nav__prev,
+  .calendarW-nav__next {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    transition: background-color 0.3s ease-in;
+    border-radius: 6px;
+    pointer-events: all;
+  }
+  .calendarW-nav__prev:hover,
+  .calendarW-nav__next:hover { background-color: #F2F6F9; }
+
+  /* Months strip */
+  .calendarW-mounths-wrap {
+    overflow: hidden;
+    width: 100%;
+  }
+  .calendarW-mounths {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: max-content;
+    padding: 14px 0 6px 0;
+  }
+  .calendarW-mounths__item {
+		padding-top: 14px;
+		width: max-content;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 143%;
+    color: #597C8B;
+    /* positioned by JS */
+    position: absolute;
+  }
+
+  /* Dates strip */
+  .calendarW-dates-wrap {
+    margin-top: 11px;
+    overflow: hidden;
+    width: 100%;
+    border-bottom: 1px solid var(--light-light-gray);
+  }
+  .calendarW-dates {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: max-content;
+  }
+  .calendarW-dates__name {
+    width: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 123%;
+    text-align: center;
+    color: #93A5B2;
+    padding: 4px 0;
+  }
+  .calendarW-dates__name span {
+    font-size: 10px;
+    font-weight: 400;
+    color: #93A5B2;
+  }
+  .calendarW-dates__name.weekend { color: #BCC4CD; }
+  .calendarW-dates__name.weekend span { color: #BCC4CD; }
+
+  /* Scrollable body */
+  .calendarW-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    position: relative;
+  }
+
+  /* Cells */
+  .calendarW-cells {
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .calendarW-cells__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: max-content;
+  }
+  .calendarW-cells__cell {
+    width: 28px;
+    height: 40px;
+    border-right: 1px solid #F2F6F9;
+    border-bottom: 1px solid #F2F6F9;
+    flex-shrink: 0;
+  }
+  .calendarW-cells__cell.weekend {
+    background-color: #F9FBFC;
+  }
+  .calendarW-cells__row.active .calendarW-cells__cell {
+    /* colored by JS via inline background */
+  }
+
+  /* Scrollbar at bottom */
+  .calendarW-scrollbar-wrap {
+    flex-shrink: 0;
+    height: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-top: 1px solid var(--light-light-gray);
+  }
+  .calendarW-scrollbar-inner {
+    height: 1px;
+  }
+
+  .calendarW-ontable {
+    cursor: pointer;
+    position: absolute;
+    height: 32px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(29, 167, 46, 1);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 5;
+    overflow: visible;
+  }
+  .calendarW-tooltip {
+    display: none;
+    position: fixed;
+    max-width: 309px;
+    width: 309px;
+    padding: 16px;
+    border: 1px solid var(--light-light-gray);
+    border-radius: 12px;
+    box-shadow: 0 8px 48px 0 rgba(158, 187, 204, 0.3);
+    background: #fff;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    z-index: 1000;
+  }
+  .calendarW-tooltip__name {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 122%;
+    color: #1DA72E;
+    text-decoration: none;
+  }
+  .calendarW-tooltip__name svg { display: block; width: 20px; height: 20px; }
+  .calendarW-tooltip__company {
+    margin: 0;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 123%;
+    color: #242B31;
+  }
+  .calendarW-tooltip__list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+  }
+  .calendarW-tooltip__item {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    color: #242B31;
+  }
+  .calendarW-tooltip__item span { color: #597C8B; }
+</style>
+</head>
+<body>
+
+<section class="sect py-0">
+  <div class="sect-wrapper">
+    <div class="sect-wrapper__info">Зарезервированное место</div>
+
+    <div class="calendarW">
+      <!-- Topbar -->
+      <div class="calendarW-topbar">
+        <div></div>
+        <div class="calendarDatePicker">
+          <div class="inputW">
+            <input type="text" class="calendar formInput w-225" value="20.05.2026 - 30.05.2026">
+          </div>
+        </div>
+      </div>
+
+      <!-- Main wrapper -->
+      <div class="calendarW-wrapper">
+
+        <!-- Categories -->
+        <div class="calendarW-right">
+          <div class="calendarW-right__search">
+            <h4 class="calendarW-right__title">Учебные курсы</h4>
+            <input type="text">
+          </div>
+          <div class="calendarW-cat-scroll">
+            <ul class="list-reset calendarW-cat">
+
+              <!-- Cat 1 -->
+              <li class="calendarW-cat__main">
+                <div class="calendarW-cat__main-name open">
+                  <span>Охрана труда</span>
+                  <svg width="6" height="10" viewBox="0 0 6 10" fill="none"><path d="M0.75 8.75L4.75 4.75L0.75 0.75" stroke="#597C8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <ul class="list-reset calendarW-cat__level2" data-row="0">
+                  <li class="calendarW-cat__level2-name">
+                    <div class="dot" style="background-color: rgba(0,191,112,1);"></div>
+                    <span>ПП.48 Промышленная безопасность опасных производственных объектов</span>
+                    <svg width="6" height="10" viewBox="0 0 6 10" fill="none"><path d="M0.75 8.75L4.75 4.75L0.75 0.75" stroke="#597C8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </li>
+                  <li class="calendarW-cat__level2-item">РП720587</li>
+                  <li class="calendarW-cat__level2-item">РП720588</li>
+                  <li class="calendarW-cat__level2-item">РП720591</li>
+                  <li class="calendarW-cat__level2-item">РП720592</li>
+                  <li class="calendarW-cat__level2-item">РП720593</li>
+                </ul>
+                <ul class="list-reset calendarW-cat__level2" data-row="1">
+                  <li class="calendarW-cat__level2-name">
+                    <div class="dot" style="background-color: rgb(38, 73, 226);"></div>
+                    <span>ПП.49 Промышленная безопасность</span>
+                    <svg width="6" height="10" viewBox="0 0 6 10" fill="none"><path d="M0.75 8.75L4.75 4.75L0.75 0.75" stroke="#597C8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </li>
+                  <li class="calendarW-cat__level2-item">РП720587</li>
+                  <li class="calendarW-cat__level2-item">РП720588</li>
+                  <li class="calendarW-cat__level2-item">РП720591</li>
+                  <li class="calendarW-cat__level2-item">РП720592</li>
+                  <li class="calendarW-cat__level2-item">РП720593</li>
+                </ul>
+              </li>
+
+              <!-- Cat 2 -->
+              <li class="calendarW-cat__main">
+                <div class="calendarW-cat__main-name">
+                  <span>Охрана труда</span>
+                  <svg width="6" height="10" viewBox="0 0 6 10" fill="none"><path d="M0.75 8.75L4.75 4.75L0.75 0.75" stroke="#597C8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <ul class="list-reset calendarW-cat__level2" data-row="2">
+                  <li class="calendarW-cat__level2-name">
+                    <div class="dot" style="background-color: rgba(255,120,1,1);"></div>
+                    <span>ПП.48 Промышленная безопасность опасных производственных объектов</span>
+                    <svg width="6" height="10" viewBox="0 0 6 10" fill="none"><path d="M0.75 8.75L4.75 4.75L0.75 0.75" stroke="#597C8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </li>
+                  <li class="calendarW-cat__level2-item">РП720589</li>
+                  <li class="calendarW-cat__level2-item">РП720595</li>
+                  <li class="calendarW-cat__level2-item">РП720596</li>
+                  <li class="calendarW-cat__level2-item">РП720597</li>
+                  <li class="calendarW-cat__level2-item">РП720598</li>
+                </ul>
+              </li>
+
+            </ul>
+          </div>
+        </div>
+        <!-- /Categories -->
+
+        <!-- Calendar area -->
+        <div class="calendarW-left">
+          <div class="calendarW-header">
+            <!-- Nav buttons -->
+            <div class="calendarW-area">
+              <div class="calendarW-nav">
+                <button class="btn-reset calendarW-nav__prev">
+                  <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M5.75 10.75L0.75 5.75L5.75 0.75" stroke="#597C8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="btn-reset calendarW-nav__next">
+                  <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M0.75 10.75L5.75 5.75L0.75 0.75" stroke="#597C8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+              <!-- Month labels positioned absolutely -->
+              <div class="calendarW-mounths-wrap" style="height:44px; position:relative;">
+                <div class="calendarW-mounths" id="calendarMounths"></div>
+              </div>
+              <!-- Dates strip -->
+              <div class="calendarW-dates-wrap">
+                <div class="calendarW-dates" id="calendarDates"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scrollable body with cells -->
+          <div class="calendarW-body" id="calendarBody">
+            <div class="calendarW-cells" id="calendarCells">
+              <!-- rows generated by JS -->
+            </div>
+
+          </div><!-- /calendarW-body -->
+
+          <!-- Horizontal scrollbar at bottom -->
+          <div class="calendarW-scrollbar-wrap" id="calendarScrollbarWrap">
+            <div class="calendarW-scrollbar-inner" id="calendarScrollbarInner"></div>
+          </div>
+
+        </div><!-- /calendarW-left -->
+      </div><!-- /calendarW-wrapper -->
+    </div><!-- /calendarW -->
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  // =============================================
+  // CONFIG
+  // =============================================
+  const CELL_W = 28;
+  const TOTAL_MONTHS = 3;
+  const RU_MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const RU_DAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const ROW_H = 40; // must match .calendarW-cells__cell height
+
+  // =============================================
+  // BARS DATA  (row = data-row на level2, barRow = индекс строки внутри level2)
+  // level2-name всегда строка 0 внутри своего level2
+  // level2-item[0] → строка 1, [1] → строка 2, etc.
+  // =============================================
+  const BARS_DATA = [
+    // === level2Row:0 (первая категория ПП.48, зелёная) ===
+    // itemRow:1 = РП720587
+    {
+      level2Row: 0, itemRow: 1,
+      label: 'РП720587',
+      dateFrom: '2026-04-25', dateTo: '2026-05-15',
+      color: 'rgba(0,191,112,1)',
+      tooltip: { group: 'РП720587', company: 'ООО "Название компании", ООО "Название компании".', students: 24, dates: '25.04.26 – 15.05.2026', hours: '33 h', responsible: 'Иванов И.И. Круглов А.Б.' }
+    },
+    // itemRow:2 = РП720588
+    {
+      level2Row: 0, itemRow: 2,
+      label: 'РП720588',
+      dateFrom: '2026-05-20', dateTo: '2026-06-05',
+      color: 'rgba(0,191,112,1)',
+      tooltip: { group: 'РП720588', company: 'ООО "Название компании".', students: 12, dates: '20.05.26 – 05.06.2026', hours: '16 h', responsible: 'Петров П.П.' }
+    },
+    // itemRow:3 = РП720591
+    {
+      level2Row: 0, itemRow: 3,
+      label: 'РП720591',
+      dateFrom: '2026-04-28', dateTo: '2026-05-10',
+      color: 'rgba(0,191,112,1)',
+      tooltip: { group: 'РП720591', company: 'ООО "Название компании".', students: 8, dates: '28.04.26 – 10.05.2026', hours: '20 h', responsible: 'Иванов И.И.' }
+    },
+    // itemRow:4 = РП720592
+    {
+      level2Row: 0, itemRow: 4,
+      label: 'РП720592',
+      dateFrom: '2026-05-03', dateTo: '2026-05-20',
+      color: 'rgba(0,191,112,1)',
+      tooltip: { group: 'РП720592', company: 'ООО "Название компании".', students: 15, dates: '03.05.26 – 20.05.2026', hours: '28 h', responsible: 'Сидоров С.С.' }
+    },
+    // itemRow:5 = РП720593
+    {
+      level2Row: 0, itemRow: 5,
+      label: 'РП720593',
+      dateFrom: '2026-05-12', dateTo: '2026-05-25',
+      color: 'rgba(0,191,112,1)',
+      tooltip: { group: 'РП720593', company: 'ООО "Название компании".', students: 6, dates: '12.05.26 – 25.05.2026', hours: '18 h', responsible: 'Петров П.П.' }
+    },
+
+    // === level2Row:1 (вторая категория ПП.48, оранжевая) ===
+    // itemRow:1 = РП720589
+    {
+      level2Row: 1, itemRow: 1,
+      label: 'РП720589',
+      dateFrom: '2026-05-05', dateTo: '2026-05-28',
+      color: 'rgba(255,120,1,1)',
+      tooltip: { group: 'РП720589', company: 'ООО "Другая компания".', students: 18, dates: '05.05.26 – 28.05.2026', hours: '24 h', responsible: 'Сидоров С.С.' }
+    },
+    // itemRow:2 = РП720595
+    {
+      level2Row: 1, itemRow: 2,
+      label: 'РП720595',
+      dateFrom: '2026-04-22', dateTo: '2026-05-08',
+      color: 'rgba(255,120,1,1)',
+      tooltip: { group: 'РП720595', company: 'ООО "Другая компания".', students: 9, dates: '22.04.26 – 08.05.2026', hours: '16 h', responsible: 'Сидоров С.С.' }
+    },
+    // itemRow:3 = РП720596
+    {
+      level2Row: 1, itemRow: 3,
+      label: 'РП720596',
+      dateFrom: '2026-05-10', dateTo: '2026-05-22',
+      color: 'rgba(255,120,1,1)',
+      tooltip: { group: 'РП720596', company: 'ООО "Другая компания".', students: 11, dates: '10.05.26 – 22.05.2026', hours: '18 h', responsible: 'Иванов И.И.' }
+    },
+    // itemRow:4 = РП720597
+    {
+      level2Row: 1, itemRow: 4,
+      label: 'РП720597',
+      dateFrom: '2026-05-15', dateTo: '2026-05-30',
+      color: 'rgba(255,120,1,1)',
+      tooltip: { group: 'РП720597', company: 'ООО "Другая компания".', students: 7, dates: '15.05.26 – 30.05.2026', hours: '14 h', responsible: 'Круглов А.Б.' }
+    },
+    // itemRow:5 = РП720598
+    {
+      level2Row: 1, itemRow: 5,
+      label: 'РП720598',
+      dateFrom: '2026-05-20', dateTo: '2026-06-03',
+      color: 'rgba(255,120,1,1)',
+      tooltip: { group: 'РП720598', company: 'ООО "Другая компания".', students: 13, dates: '20.05.26 – 03.06.2026', hours: '20 h', responsible: 'Петров П.П.' }
+    }
+  ];
+
+  const GROUP_SVG = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#cg)"><path d="M7.5 19.167C7.5 18.725 7.325 18.3 7.012 17.988C6.699 17.676 6.276 17.5 5.833 17.5H2.5C2.058 17.5 1.634 17.676 1.322 17.988C1.009 18.3 0.833 18.725 0.833 19.167" stroke="#1DA72E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.167 19.167C19.167 18.725 18.991 18.3 18.679 17.988C18.366 17.676 17.942 17.5 17.5 17.5H14.167C13.725 17.5 13.3 17.676 12.988 17.988C12.676 18.3 12.5 18.725 12.5 19.167" stroke="#1DA72E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.333 8.333C13.333 7.891 13.158 7.467 12.845 7.155C12.533 6.842 12.109 6.667 11.667 6.667H8.333C7.891 6.667 7.467 6.842 7.155 7.155C6.842 7.467 6.667 7.891 6.667 8.333" stroke="#1DA72E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.167 15C5.087 15 5.833 14.254 5.833 13.333C5.833 12.413 5.087 11.667 4.167 11.667C3.246 11.667 2.5 12.413 2.5 13.333C2.5 14.254 3.246 15 4.167 15Z" stroke="#1DA72E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.833 15C16.754 15 17.5 14.254 17.5 13.333C17.5 12.413 16.754 11.667 15.833 11.667C14.913 11.667 14.167 12.413 14.167 13.333C14.167 14.254 14.913 15 15.833 15Z" stroke="#1DA72E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 4.167C10.92 4.167 11.667 3.42 11.667 2.5C11.667 1.58 10.92 0.833 10 0.833C9.08 0.833 8.333 1.58 8.333 2.5C8.333 3.42 9.08 4.167 10 4.167Z" stroke="#1DA72E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><defs><clipPath id="cg"><rect width="20" height="20" fill="white"/></clipPath></defs></svg>`;
+
+  // =============================================
+  // STATE
+  // =============================================
+  let monthOffset = 0;
+  let currentScrollLeft = 0;
+  let currentDays = [];
+  let currentStartDate = null;
+
+  // =============================================
+  // HELPERS
+  // =============================================
+  function isWeekend(date) {
+    const d = date.getDay();
+    return d === 0 || d === 6;
+  }
+
+  function buildDays(startDate) {
+    const days = [];
+    const d = new Date(startDate);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + TOTAL_MONTHS);
+    while (d < endDate) {
+      days.push(new Date(d));
+      d.setDate(d.getDate() + 1);
+    }
+    return days;
+  }
+
+  function getStartDate() {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - 1 + monthOffset, 21);
+  }
+
+  // =============================================
+  // DOM REFS
+  // =============================================
+  const datesContainer   = document.getElementById('calendarDates');
+  const mounthsContainer = document.getElementById('calendarMounths');
+  const cellsContainer   = document.getElementById('calendarCells');
+  const scrollbarWrap    = document.getElementById('calendarScrollbarWrap');
+  const scrollbarInner   = document.getElementById('calendarScrollbarInner');
+  const calendarBody     = document.getElementById('calendarBody');
+  const catScrollEl      = document.querySelector('.calendarW-cat-scroll');
+  const datesWrap        = datesContainer.parentElement;
+
+  // =============================================
+  // COMPUTE VISIBLE ROWS
+  // Every visible element in the category list = one row in the table
+  // =============================================
+  function getVisibleRows() {
+    const rows = [];
+    document.querySelectorAll('.calendarW-cat__main').forEach((main, mainIdx) => {
+      // main-name is always visible → always a row
+      rows.push({ type: 'main', mainIdx, level2Row: null, itemIndex: null, el: main.querySelector('.calendarW-cat__main-name') });
+
+      const level2 = main.querySelector('.calendarW-cat__level2');
+      if (!level2 || level2.style.display === 'none') return;
+
+      const level2Row = parseInt(level2.dataset.row);
+
+      // level2-name → row
+      rows.push({ type: 'level2name', mainIdx, level2Row, itemIndex: 0, el: level2.querySelector('.calendarW-cat__level2-name') });
+
+      // level2-items (only visible ones)
+      level2.querySelectorAll('.calendarW-cat__level2-item').forEach((item, idx) => {
+        if (item.style.display !== 'none') {
+          rows.push({ type: 'item', mainIdx, level2Row, itemIndex: idx + 1, el: item });
+        }
+      });
+    });
+    return rows;
+  }
+
+  // =============================================
+  // RENDER CALENDAR (dates + months)
+  // =============================================
+  function renderCalendar() {
+    currentStartDate = getStartDate();
+    currentDays = buildDays(currentStartDate);
+    const totalWidth = currentDays.length * CELL_W;
+
+    // Dates
+    datesContainer.innerHTML = '';
+    currentDays.forEach(day => {
+      const el = document.createElement('div');
+      el.className = 'calendarW-dates__name' + (isWeekend(day) ? ' weekend' : '');
+      el.dataset.date = day.toISOString().slice(0, 10);
+      el.innerHTML = `${day.getDate()} <span>${RU_DAYS_SHORT[day.getDay()]}</span>`;
+      datesContainer.appendChild(el);
+    });
+
+    // Month labels
+    mounthsContainer.innerHTML = '';
+    const monthPositions = {};
+    currentDays.forEach((day, idx) => {
+      const key = `${day.getFullYear()}-${day.getMonth()}`;
+      if (!(key in monthPositions)) {
+        monthPositions[key] = { idx, year: day.getFullYear(), month: day.getMonth() };
+      }
+    });
+    Object.values(monthPositions).forEach(mp => {
+      const label = document.createElement('div');
+      label.className = 'calendarW-mounths__item';
+      label.textContent = `${RU_MONTHS[mp.month]} ${mp.year}`;
+      label.style.left = ((mp.idx + 1) * CELL_W) + 'px';
+      label.style.top = '0';
+      mounthsContainer.appendChild(label);
+    });
+
+    // Scrollbar
+    scrollbarInner.style.width = totalWidth + 'px';
+    scrollbarInner.style.height = '1px';
+  }
+
+  // =============================================
+  // REAPPLY HIGHLIGHTS — restore bg color for all active level2 rows
+  // =============================================
+  function reapplyHighlights() {
+    document.querySelectorAll('.calendarW-cat__level2.active').forEach(level2 => {
+      const dot = level2.querySelector('.dot');
+      if (!dot) return;
+      const color = window.getComputedStyle(dot).backgroundColor;
+      const parts = color.match(/\d+(\.\d+)?/g) || [];
+      if (parts.length < 3) return;
+      const [r, g, b] = parts;
+      const l2idx = level2.dataset.row;
+      document.querySelectorAll(`.calendarW-cells__row[data-level2row="${l2idx}"]`).forEach(row => {
+        row.querySelectorAll('.calendarW-cells__cell').forEach(c => {
+          c.style.backgroundColor = `rgba(${r},${g},${b},0.1)`;
+        });
+      });
+    });
+  }
+
+  // =============================================
+  // RENDER CELLS — one row per visible category element
+  // =============================================
+  function renderCells() {
+    cellsContainer.innerHTML = '';
+    document.querySelectorAll('.calendarW-ontable').forEach(el => el.remove());
+
+    const visibleRows = getVisibleRows();
+
+    visibleRows.forEach((rowInfo, rowIdx) => {
+      const row = document.createElement('div');
+      row.className = 'calendarW-cells__row';
+      row.dataset.cellrow = rowIdx;
+      if (rowInfo.level2Row !== null) {
+        row.dataset.level2row = rowInfo.level2Row;
+        row.dataset.itemindex = rowInfo.itemIndex;
+      }
+
+      currentDays.forEach(day => {
+        const cell = document.createElement('div');
+        cell.className = 'calendarW-cells__cell' + (isWeekend(day) ? ' weekend' : '');
+        cell.dataset.date = day.toISOString().slice(0, 10);
+        row.appendChild(cell);
+      });
+      cellsContainer.appendChild(row);
+    });
+
+    renderBars(visibleRows);
+    syncScroll(currentScrollLeft);
+    reapplyHighlights();
+  }
+
+  // =============================================
+  // RENDER BARS
+  // =============================================
+  function renderBars(visibleRows) {
+    document.querySelectorAll('.calendarW-ontable').forEach(el => el.remove());
+
+    const dateIndex = {};
+    currentDays.forEach((d, i) => {
+      dateIndex[d.toISOString().slice(0, 10)] = i;
+    });
+
+    const startStr = currentStartDate.toISOString().slice(0, 10);
+    const endDate = new Date(currentStartDate);
+    endDate.setMonth(endDate.getMonth() + TOTAL_MONTHS);
+    const endStr = endDate.toISOString().slice(0, 10);
+
+    BARS_DATA.forEach(bar => {
+      if (bar.dateTo < startStr || bar.dateFrom > endStr) return;
+
+      const fromStr = bar.dateFrom < startStr ? startStr : bar.dateFrom;
+      const toStr   = bar.dateTo   > endStr   ? endStr   : bar.dateTo;
+
+      const fromIdx = dateIndex[fromStr];
+      const toIdx   = dateIndex[toStr];
+      if (fromIdx === undefined || toIdx === undefined) return;
+
+      // Find the matching row index in visibleRows
+      const rowIdx = visibleRows.findIndex(r =>
+        r.level2Row === bar.level2Row && r.itemIndex === bar.itemRow
+      );
+      if (rowIdx === -1) return; // row not visible
+
+      const barLeft  = fromIdx * CELL_W;
+      const barWidth = (toIdx - fromIdx + 1) * CELL_W;
+      const barTop = rowIdx * ROW_H + (ROW_H - 32) / 2;
+
+      const labelText = `${bar.label} ${bar.dateFrom.split('-').reverse().join('.')} – ${bar.dateTo.split('-').reverse().join('.')}`;
+      const t = bar.tooltip;
+
+      const ontable = document.createElement('div');
+      ontable.className = 'calendarW-ontable';
+      ontable.dataset.origLeft = barLeft;
+      ontable.style.top    = barTop + 'px';
+      ontable.style.left   = (barLeft - currentScrollLeft) + 'px';
+      ontable.style.width  = barWidth + 'px';
+      ontable.style.borderBottomColor = bar.color;
+      ontable.style.overflow = 'hidden';
+      ontable.style.textOverflow = 'ellipsis';
+      ontable.innerHTML = `${labelText}<div class="calendarW-tooltip"><a href="#" class="calendarW-tooltip__name">${GROUP_SVG}Группа ${t.group}</a><p class="calendarW-tooltip__company">${t.company}</p><ul class="list-reset calendarW-tooltip__list"><li class="calendarW-tooltip__item"><span>Студентов:</span> ${t.students}</li><li class="calendarW-tooltip__item"><span>Даты:</span> ${t.dates}</li><li class="calendarW-tooltip__item"><span>Часов по учебному плану:</span> ${t.hours}</li><li class="calendarW-tooltip__item"><span>Ответственные:</span> ${t.responsible}</li></ul></div>`;
+
+      calendarBody.appendChild(ontable);
+    });
+  }
+
+  // =============================================
+  // SCROLL SYNC  (horizontal)
+  // =============================================
+  function syncScroll(left) {
+    datesContainer.style.transform = `translateX(-${left}px)`;
+    mounthsContainer.style.transform = `translateX(-${left}px)`;
+    document.querySelectorAll('.calendarW-cells__row').forEach(row => {
+      row.style.transform = `translateX(-${left}px)`;
+    });
+    document.querySelectorAll('.calendarW-ontable').forEach(bar => {
+      const origLeft = parseFloat(bar.dataset.origLeft);
+      bar.style.left = (origLeft - left) + 'px';
+    });
+  }
+
+  scrollbarWrap.addEventListener('scroll', function () {
+    currentScrollLeft = scrollbarWrap.scrollLeft;
+    syncScroll(currentScrollLeft);
+  });
+
+  document.querySelector('.calendarW-left').addEventListener('wheel', function (e) {
+    if (e.shiftKey) {
+      e.preventDefault();
+      currentScrollLeft = Math.max(0, currentScrollLeft + e.deltaY);
+      scrollbarWrap.scrollLeft = currentScrollLeft;
+      syncScroll(currentScrollLeft);
+    }
+  }, { passive: false });
+
+  // Sync vertical scroll between category list and calendar body
+  calendarBody.addEventListener('scroll', function () {
+    catScrollEl.scrollTop = calendarBody.scrollTop;
+  });
+  catScrollEl.addEventListener('scroll', function () {
+    calendarBody.scrollTop = catScrollEl.scrollTop;
+  });
+
+  // =============================================
+  // NAV ARROWS
+  // =============================================
+  document.querySelector('.calendarW-nav__prev').addEventListener('click', function () {
+    monthOffset--;
+    currentScrollLeft = 0;
+    scrollbarWrap.scrollLeft = 0;
+    renderCalendar();
+    renderCells();
+  });
+  document.querySelector('.calendarW-nav__next').addEventListener('click', function () {
+    monthOffset++;
+    currentScrollLeft = 0;
+    scrollbarWrap.scrollLeft = 0;
+    renderCalendar();
+    renderCells();
+  });
+
+  // =============================================
+  // ACCORDION CATS  — после каждого toggle перерисовываем ячейки
+  // =============================================
+  document.querySelectorAll('.calendarW-cat__level2').forEach(el => {
+    el.style.display = 'none';
+  });
+  document.querySelectorAll('.calendarW-cat__level2-item').forEach(el => {
+    el.style.display = 'none';
+  });
+
+  document.querySelectorAll('.calendarW-cat__main-name').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const level2 = this.nextElementSibling;
+      if (level2?.classList.contains('calendarW-cat__level2')) {
+        const isOpen = level2.style.display === 'block';
+        level2.style.display = isOpen ? 'none' : 'block';
+        this.classList.toggle('open', !isOpen);
+        renderCells();
+      }
+    });
+  });
+
+  document.querySelectorAll('.calendarW-cat__level2-name').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const level2 = this.closest('.calendarW-cat__level2');
+      if (!level2) return;
+
+      const dot = this.querySelector('.dot');
+      const items = level2.querySelectorAll('.calendarW-cat__level2-item');
+      const isVisible = items[0]?.style.display !== 'none';
+
+      // Accordion: toggle items visibility
+      items.forEach(item => {
+        item.style.display = isVisible ? 'none' : 'flex';
+      });
+      this.classList.toggle('open', !isVisible);
+
+      // Active highlight: add on first click, remove only on second click (when items were already visible)
+      if (!level2.classList.contains('active')) {
+        level2.classList.add('active');
+        if (dot) {
+          const color = window.getComputedStyle(dot).backgroundColor;
+          const parts = color.match(/\d+(\.\d+)?/g) || [];
+          if (parts.length >= 3) {
+            const [r, g, b] = parts;
+            level2.style.backgroundColor = `rgba(${r},${g},${b},0.1)`;
+          }
+        }
+      } else if (isVisible) {
+        // Second click while open = deactivate
+        level2.classList.remove('active');
+        level2.style.backgroundColor = '';
+        this.classList.remove('open');
+      }
+
+      renderCells();
+    });
+  });
+
+  // =============================================
+  // TOOLTIPS
+  // =============================================
+  document.addEventListener('click', function (e) {
+    const ontable = e.target.closest('.calendarW-ontable');
+    if (ontable) {
+      if (e.target.closest('.calendarW-tooltip')) return;
+      const tooltip = ontable.querySelector('.calendarW-tooltip');
+      if (!tooltip) return;
+      const isVisible = tooltip.style.display === 'flex';
+      document.querySelectorAll('.calendarW-tooltip').forEach(t => { t.style.display = 'none'; });
+      if (!isVisible) {
+        tooltip.style.display = 'flex';
+        // Position using fixed coords relative to viewport
+        const rect = ontable.getBoundingClientRect();
+        let top = rect.top - tooltip.offsetHeight - 8;
+        let left = rect.right - 309;
+        if (top < 8) top = rect.bottom + 8;
+        if (left < 8) left = 8;
+        tooltip.style.top  = top + 'px';
+        tooltip.style.left = left + 'px';
+      }
+      return;
+    }
+    document.querySelectorAll('.calendarW-tooltip').forEach(t => { t.style.display = 'none'; });
+  });
+
+  // =============================================
+  // INIT
+  // =============================================
+  renderCalendar();
+  renderCells();
+});
+</script>
+</body>
+</html>
