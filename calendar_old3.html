@@ -460,32 +460,6 @@
     color: #242B31;
   }
   .calendarW-tooltip__item span { color: #597C8B; }
-
-  .calendarW-tooltip__close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    color: #93A5B2;
-    border-radius: 4px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    flex-shrink: 0;
-  }
-  .calendarW-tooltip__close:hover {
-    background-color: #F2F6F9;
-    color: #242B31;
-  }
-  .calendarW-tooltip {
-    position: fixed !important;
-  }
 </style>
 </head>
 <body>
@@ -848,10 +822,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Scrollbar
     scrollbarInner.style.width = totalWidth + 'px';
     scrollbarInner.style.height = '1px';
-
-    // Update max scroll: total calendar width minus visible area width
-    const leftPanelWidth = scrollbarWrap.getBoundingClientRect().width;
-    window._calendarMaxScroll = Math.max(0, totalWidth - leftPanelWidth);
   }
 
   // =============================================
@@ -954,7 +924,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ontable.style.borderBottomColor = bar.color;
       ontable.style.overflow = 'hidden';
       ontable.style.textOverflow = 'ellipsis';
-      ontable.innerHTML = `${labelText}<div class="calendarW-tooltip"><button class="calendarW-tooltip__close" title="Закрыть"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><a href="#" class="calendarW-tooltip__name">${GROUP_SVG}Группа ${t.group}</a><p class="calendarW-tooltip__company">${t.company}</p><ul class="list-reset calendarW-tooltip__list"><li class="calendarW-tooltip__item"><span>Студентов:</span> ${t.students}</li><li class="calendarW-tooltip__item"><span>Даты:</span> ${t.dates}</li><li class="calendarW-tooltip__item"><span>Часов по учебному плану:</span> ${t.hours}</li><li class="calendarW-tooltip__item"><span>Ответственные:</span> ${t.responsible}</li></ul></div>`;
+      ontable.innerHTML = `${labelText}<div class="calendarW-tooltip"><a href="#" class="calendarW-tooltip__name">${GROUP_SVG}Группа ${t.group}</a><p class="calendarW-tooltip__company">${t.company}</p><ul class="list-reset calendarW-tooltip__list"><li class="calendarW-tooltip__item"><span>Студентов:</span> ${t.students}</li><li class="calendarW-tooltip__item"><span>Даты:</span> ${t.dates}</li><li class="calendarW-tooltip__item"><span>Часов по учебному плану:</span> ${t.hours}</li><li class="calendarW-tooltip__item"><span>Ответственные:</span> ${t.responsible}</li></ul></div>`;
 
       calendarBody.appendChild(ontable);
     });
@@ -976,17 +946,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   scrollbarWrap.addEventListener('scroll', function () {
-    const maxScroll = window._calendarMaxScroll || 0;
-    currentScrollLeft = Math.min(scrollbarWrap.scrollLeft, maxScroll);
-    if (scrollbarWrap.scrollLeft > maxScroll) scrollbarWrap.scrollLeft = maxScroll;
+    currentScrollLeft = scrollbarWrap.scrollLeft;
     syncScroll(currentScrollLeft);
   });
 
   document.querySelector('.calendarW-left').addEventListener('wheel', function (e) {
     if (e.shiftKey) {
       e.preventDefault();
-      const maxScroll = window._calendarMaxScroll || 0;
-      currentScrollLeft = Math.max(0, Math.min(currentScrollLeft + e.deltaY, maxScroll));
+      currentScrollLeft = Math.max(0, currentScrollLeft + e.deltaY);
       scrollbarWrap.scrollLeft = currentScrollLeft;
       syncScroll(currentScrollLeft);
     }
@@ -1093,13 +1060,6 @@ document.addEventListener('DOMContentLoaded', function () {
   // TOOLTIPS
   // =============================================
   document.addEventListener('click', function (e) {
-    // Close button inside tooltip
-    if (e.target.closest('.calendarW-tooltip__close')) {
-      const tooltip = e.target.closest('.calendarW-tooltip');
-      if (tooltip) tooltip.style.display = 'none';
-      return;
-    }
-
     const ontable = e.target.closest('.calendarW-ontable');
     if (ontable) {
       if (e.target.closest('.calendarW-tooltip')) return;
