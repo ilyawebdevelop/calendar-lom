@@ -867,13 +867,15 @@ document.addEventListener('DOMContentLoaded', function () {
       mounthsContainer.appendChild(label);
     });
 
-    // Scrollbar
-    scrollbarInner.style.width = totalWidth + 'px';
-    scrollbarInner.style.height = '1px';
+    // Update max scroll: total calendar width minus visible dates area width
+    const visibleWidth = datesWrap.clientWidth;
+    const maxScroll = Math.max(0, totalWidth - visibleWidth);
+    window._calendarMaxScroll = maxScroll;
 
-    // Update max scroll: total calendar width minus visible area width
-    const leftPanelWidth = scrollbarWrap.getBoundingClientRect().width;
-    window._calendarMaxScroll = Math.max(0, totalWidth - leftPanelWidth);
+    // Scrollbar inner must be sized so that scrollbarWrap's native scroll range
+    // equals exactly maxScroll (i.e. scrollbarInner - scrollbarWrap.clientWidth = maxScroll)
+    scrollbarInner.style.width = (maxScroll + scrollbarWrap.clientWidth) + 'px';
+    scrollbarInner.style.height = '1px';
   }
 
   // =============================================

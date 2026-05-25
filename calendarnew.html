@@ -350,6 +350,7 @@
     align-items: flex-start;
     justify-content: flex-start;
     width: max-content;
+    transition: all 0.3s ease-in;
   }
   .calendarW-cells__row:hover {
     position: relative;
@@ -1037,11 +1038,18 @@ document.addEventListener('DOMContentLoaded', function () {
   }, { passive: true });
 
   // Sync vertical scroll between category list and calendar body
+  let isSyncingScroll = false;
   calendarBody.addEventListener('scroll', function () {
+    if (isSyncingScroll) return;
+    isSyncingScroll = true;
     catScrollEl.scrollTop = calendarBody.scrollTop;
+    isSyncingScroll = false;
   });
   catScrollEl.addEventListener('scroll', function () {
+    if (isSyncingScroll) return;
+    isSyncingScroll = true;
     calendarBody.scrollTop = catScrollEl.scrollTop;
+    isSyncingScroll = false;
   });
 
   // =============================================
