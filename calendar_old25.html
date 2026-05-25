@@ -381,24 +381,6 @@
     /* colored by JS via inline background */
   }
 
-  /* Hover highlight: row */
-  .calendarW-cells__cell.hover-row {
-    background-color: rgba(93, 156, 236, 0.10) !important;
-  }
-  /* Hover highlight: column (date header) */
-  .calendarW-dates__name.hover-col {
-    background-color: rgba(93, 156, 236, 0.12);
-    border-radius: 4px;
-  }
-  /* Hover highlight: column cells */
-  .calendarW-cells__cell.hover-col {
-    background-color: rgba(93, 156, 236, 0.10) !important;
-  }
-  /* Intersection cell (row + col) gets stronger highlight */
-  .calendarW-cells__cell.hover-row.hover-col {
-    background-color: rgba(93, 156, 236, 0.22) !important;
-  }
-
   /* Scrollbar at bottom */
   .calendarW-scrollbar-wrap {
     flex-shrink: 0;
@@ -406,7 +388,6 @@
     overflow-x: auto;
     overflow-y: hidden;
     border-top: 1px solid var(--light-light-gray);
-    -webkit-overflow-scrolling: touch;
   }
   .calendarW-scrollbar-inner {
     height: 1px;
@@ -1006,36 +987,14 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   document.querySelector('.calendarW-left').addEventListener('wheel', function (e) {
-    // Support horizontal scroll: Shift+scroll, native horizontal scroll (trackpad/iOS), or deltaX
-    const isHorizontal = e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY) || (e.deltaX !== 0 && e.deltaY === 0);
-    if (isHorizontal) {
+    if (e.shiftKey) {
       e.preventDefault();
-      const delta = e.shiftKey ? e.deltaY : (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY);
       const maxScroll = window._calendarMaxScroll || 0;
-      currentScrollLeft = Math.max(0, Math.min(currentScrollLeft + delta, maxScroll));
+      currentScrollLeft = Math.max(0, Math.min(currentScrollLeft + e.deltaY, maxScroll));
       scrollbarWrap.scrollLeft = currentScrollLeft;
       syncScroll(currentScrollLeft);
     }
   }, { passive: false });
-
-  // Touch support for iOS horizontal scroll on the calendar area
-  let touchStartX = 0;
-  let touchStartScrollLeft = 0;
-  document.querySelector('.calendarW-left').addEventListener('touchstart', function (e) {
-    if (e.touches.length === 1) {
-      touchStartX = e.touches[0].clientX;
-      touchStartScrollLeft = currentScrollLeft;
-    }
-  }, { passive: true });
-  document.querySelector('.calendarW-left').addEventListener('touchmove', function (e) {
-    if (e.touches.length === 1) {
-      const dx = touchStartX - e.touches[0].clientX;
-      const maxScroll = window._calendarMaxScroll || 0;
-      currentScrollLeft = Math.max(0, Math.min(touchStartScrollLeft + dx, maxScroll));
-      scrollbarWrap.scrollLeft = currentScrollLeft;
-      syncScroll(currentScrollLeft);
-    }
-  }, { passive: true });
 
   // Sync vertical scroll between category list and calendar body
   calendarBody.addEventListener('scroll', function () {
@@ -1166,40 +1125,6 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     document.querySelectorAll('.calendarW-tooltip').forEach(t => { t.style.display = 'none'; });
-  });
-
-  // =============================================
-  // HOVER HIGHLIGHT — row + column
-  // =============================================
-  function clearHoverHighlights() {
-    document.querySelectorAll('.calendarW-cells__cell.hover-row').forEach(c => c.classList.remove('hover-row'));
-    document.querySelectorAll('.calendarW-cells__cell.hover-col').forEach(c => c.classList.remove('hover-col'));
-    document.querySelectorAll('.calendarW-dates__name.hover-col').forEach(d => d.classList.remove('hover-col'));
-  }
-
-  cellsContainer.addEventListener('mouseover', function (e) {
-    const cell = e.target.closest('.calendarW-cells__cell');
-    if (!cell) return;
-    clearHoverHighlights();
-
-    const row = cell.closest('.calendarW-cells__row');
-    const date = cell.dataset.date;
-
-    // Highlight entire row
-    if (row) {
-      row.querySelectorAll('.calendarW-cells__cell').forEach(c => c.classList.add('hover-row'));
-    }
-
-    // Highlight entire column (same date across all rows) + date header
-    if (date) {
-      document.querySelectorAll(`.calendarW-cells__cell[data-date="${date}"]`).forEach(c => c.classList.add('hover-col'));
-      const dateHeader = document.querySelector(`.calendarW-dates__name[data-date="${date}"]`);
-      if (dateHeader) dateHeader.classList.add('hover-col');
-    }
-  });
-
-  cellsContainer.addEventListener('mouseleave', function () {
-    clearHoverHighlights();
   });
 
   // =============================================
